@@ -291,6 +291,7 @@
   <!-- PROGRESS -->
   <div class="pane" id="pane-progress">
     <div class="section-title">WEIGHT LOG</div>
+    <div id="save-status" style="font-size:11px;min-height:18px;margin-bottom:6px;transition:color .3s;"></div>
     <div class="weight-input-wrap">
       <div class="weight-label">Catat berat hari ini (kg)</div>
       <div class="weight-row">
@@ -317,35 +318,66 @@
 </div>
 </div>
 
-<script>
-// ============ STATE (persisted via window.storage API) ============
-const STORAGE_KEY = 'alvin_gym_data';
+// ============ STATE (persisted via Google Sheets) ============
+const API_URL = 'https://script.google.com/macros/s/AKfycbwujQrJioGZVx16gigYEYEfx32ld-OYcxL5rFFE3AJgp1r4MI6eFwuqOXchPkzGGDeK2Q/exec';
 let weightLogs = [{date:'Start', weight:92.0, diff:null}];
 let loggedDays = {};
 
+function setStatus(msg, color) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || 'var(--muted)';
+}
+
 async function loadState() {
+  setStatus('⏳ Memuat data...', 'var(--accent)');
   try {
-    const result = await window.storage.get(STORAGE_KEY);
-    if (result && result.value) {
-      const parsed = JSON.parse(result.value);
-      weightLogs = parsed.weightLogs || [{date:'Start', weight:92.0, diff:null}];
-      loggedDays = parsed.loggedDays || {};
+    const res  = await fetch(API_URL + '?action=getAll');
+    const data = await res.json();
+    if (data.weightLogs && data.weightLogs.length > 0) {
+      weightLogs = data.weightLogs.map(l => ({
+        date: l.date,
+        weight: parseFloat(l.weight),
+        diff: (l.diff === '' || l.diff === null) ? null : parseFloat(l.diff)
+      }));
     }
+    if (data.loggedDays) loggedDays = data.loggedDays;
+    setStatus('✓ Data loaded', '#5cde5c');
+    setTimeout(() => setStatus(''), 2000);
   } catch(e) {
-    // key doesn't exist yet, use defaults
+    setStatus('⚠ Gagal load — cek koneksi', '#de5c5c');
+    console.error('Load failed:', e);
   }
   renderLogs();
   updateProgressBar();
   initCal();
 }
 
-async function saveState() {
+async function saveWeight(entry) {
+  setStatus('💾 Menyimpan...', 'var(--accent)');
   try {
-    await window.storage.set(STORAGE_KEY, JSON.stringify({ weightLogs, loggedDays }));
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveWeight', ...entry })
+    });
+    setStatus('✓ Tersimpan ke Google Sheets!', '#5cde5c');
+    setTimeout(() => setStatus(''), 2500);
   } catch(e) {
-    console.error('Save failed:', e);
+    setStatus('⚠ Gagal simpan', '#de5c5c');
+    console.error('saveWeight failed:', e);
   }
 }
+
+async function saveLoggedDay(dateKey) {
+  try {
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveLoggedDay', dateKey })
+    });
+  } catch(e) { console.error('saveLoggedDay failed:', e); }
+}
+
 
 // ============ TABS ============
 function switchTab(t) {
@@ -436,7 +468,7 @@ function selectDay(d, dow, gymType, dateKey) {
 }
 function markDone(dateKey, d, dow) {
   loggedDays[dateKey] = true;
-  saveState();
+  saveLoggedDay(dateKey);
   renderCal();
   selectDay(d, dow, gymDayType[dow], dateKey);
 }
@@ -458,7 +490,7 @@ function logWeight() {
   const diff = +(val - prev).toFixed(1);
   const today = new Date().toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
   weightLogs.push({date: today, weight: val, diff});
-  saveState();
+  saveWeight({date: today, weight: val, diff});
   renderLogs();
   updateProgressBar();
   document.getElementById('weight-in').value = '';
