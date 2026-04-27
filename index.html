@@ -1,0 +1,467 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{--black:#0a0a0a;--white:#f5f3ee;--accent:#d4f000;--gray:#1e1e1e;--gray2:#2a2a2a;--gray3:#3a3a3a;--muted:#888;}
+  body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;max-width:480px;margin:0 auto;}
+  .hero{background:var(--black);padding:20px 16px 14px;border-bottom:1px solid var(--gray2);}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .hero-label{font-size:10px;color:var(--muted);letter-spacing:.12em;}
+  .hero-name{font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;color:var(--accent);letter-spacing:2px;}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+  .stat-box{background:var(--gray);border-radius:8px;padding:8px 10px;}
+  .stat-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--white);line-height:1;}
+  .stat-unit{font-size:9px;color:var(--accent);font-weight:600;}
+  .stat-label{font-size:9px;color:var(--muted);margin-top:1px;}
+  .progress-bar-wrap{margin-top:4px;}
+  .progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;}
+  .progress-track{background:var(--gray2);border-radius:20px;height:7px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),#a8c200);transition:width 1s cubic-bezier(.4,0,.2,1);}
+  .tabs{display:flex;border-bottom:1px solid var(--gray2);background:var(--black);position:sticky;top:0;z-index:10;overflow-x:auto;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex:1;min-width:60px;padding:11px 4px;font-size:11px;font-weight:500;color:var(--muted);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .content{padding:14px 14px 60px;}
+  .section-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--accent);margin-bottom:10px;}
+  .pane{display:none;}
+  .pane.active{display:block;}
+
+  /* CALENDAR */
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .cal-month{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;}
+  .cal-btn{background:var(--gray2);border:none;color:var(--white);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+  .cal-grid{background:var(--gray);border-radius:10px;overflow:hidden;margin-bottom:12px;}
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:var(--gray2);}
+  .cal-wd{text-align:center;padding:6px 2px;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.06em;}
+  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);}
+  .cal-day{text-align:center;padding:6px 2px;font-size:12px;cursor:pointer;position:relative;min-height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+  .cal-day.empty{color:transparent;cursor:default;}
+  .cal-day.other-month{color:var(--gray3);}
+  .cal-day.today .day-num{background:var(--accent);color:var(--black);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+  .cal-day.logged .day-num{background:var(--gray3);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;}
+  .day-num{font-size:12px;}
+  .cal-dot{width:5px;height:5px;border-radius:50%;}
+  .dot-push{background:#ff7eb3;}
+  .dot-pull{background:#5bc8ff;}
+  .dot-legs{background:var(--accent);}
+  .dot-cardio{background:#a78bfa;}
+  .dot-rest{background:var(--gray3);}
+  .dot-logged{background:#5cde5c;}
+  .cal-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);}
+  .legend-dot{width:7px;height:7px;border-radius:50%;}
+  .week-strip{background:var(--gray);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+  .week-strip-title{font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:.06em;}
+  .week-days-row{display:flex;gap:4px;}
+  .wday-box{flex:1;border-radius:6px;padding:6px 4px;text-align:center;background:var(--gray2);}
+  .wday-box.active-day{background:var(--accent);}
+  .wday-name{font-size:9px;font-weight:600;color:var(--muted);}
+  .wday-box.active-day .wday-name{color:var(--black);}
+  .wday-type{font-size:8px;color:var(--muted);margin-top:2px;}
+  .wday-box.active-day .wday-type{color:var(--black);opacity:.7;}
+
+  /* WORKOUT */
+  .day-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
+  .day-btn{font-size:10px;font-weight:600;padding:5px 10px;border-radius:20px;border:1px solid var(--gray3);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.04em;}
+  .day-btn.active{background:var(--accent);color:var(--black);border-color:var(--accent);}
+  .day-card{display:none;}
+  .day-card.active{display:block;}
+  .day-header{background:var(--gray);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+  .day-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;}
+  .day-focus{font-size:10px;color:var(--accent);font-weight:600;letter-spacing:.06em;}
+  .exercise-list{display:flex;flex-direction:column;gap:5px;}
+  .ex-row{background:var(--gray);border-radius:8px;padding:9px 10px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background .15s;}
+  .ex-row:active{background:var(--gray2);}
+  .ex-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent);width:18px;flex-shrink:0;}
+  .ex-info{flex:1;}
+  .ex-name{font-size:12px;font-weight:500;}
+  .ex-sets{font-size:10px;color:var(--muted);margin-top:1px;}
+  .ex-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--gray3);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+  .ex-check.done{background:var(--accent);border-color:var(--accent);}
+  .ex-check.done::after{content:'✓';font-size:10px;color:var(--black);font-weight:700;}
+  .rest-badge{background:var(--gray2);border-radius:6px;padding:6px 10px;font-size:10px;color:var(--muted);margin-top:6px;text-align:center;}
+
+  /* MEAL */
+  .calorie-ring-wrap{display:flex;align-items:center;gap:12px;background:var(--gray);border-radius:12px;padding:12px;margin-bottom:12px;}
+  .ring-info{flex:1;}
+  .ring-total{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);line-height:1;}
+  .ring-label{font-size:10px;color:var(--muted);margin-bottom:6px;}
+  .macro-row{display:flex;gap:6px;}
+  .macro-item{flex:1;text-align:center;}
+  .macro-val{font-size:13px;font-weight:600;}
+  .macro-name{font-size:9px;color:var(--muted);}
+  .macro-p{color:#5bc8ff;}.macro-c{color:#ffb347;}.macro-f{color:#ff7eb3;}
+  .meal-list{display:flex;flex-direction:column;gap:6px;}
+  .meal-card{background:var(--gray);border-radius:10px;overflow:hidden;}
+  .meal-header{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+  .meal-time{font-size:10px;color:var(--muted);}
+  .meal-name{font-size:12px;font-weight:600;}
+  .meal-kcal{font-size:11px;color:var(--accent);font-weight:600;}
+  .meal-body{padding:0 12px 10px;display:none;}
+  .meal-body.open{display:block;}
+  .food-item{font-size:11px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--gray2);}
+  .food-item:last-child{border-bottom:none;}
+  .food-item span{float:right;color:var(--white);}
+
+  /* PROGRESS */
+  .weight-input-wrap{background:var(--gray);border-radius:10px;padding:12px;margin-bottom:12px;}
+  .weight-label{font-size:10px;color:var(--muted);margin-bottom:6px;}
+  .weight-row{display:flex;gap:6px;}
+  .weight-input{flex:1;background:var(--gray2);border:1px solid var(--gray3);border-radius:8px;padding:8px 10px;color:var(--white);font-size:15px;font-family:'DM Sans',sans-serif;}
+  .weight-btn{background:var(--accent);color:var(--black);border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;}
+  .timeline{display:flex;flex-direction:column;gap:5px;}
+  .timeline-row{background:var(--gray);border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;}
+  .tl-date{font-size:11px;color:var(--muted);}
+  .tl-weight{font-size:13px;font-weight:600;}
+  .tl-diff{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;}
+  .tl-down{background:#1a3d1a;color:#5cde5c;}
+  .tl-up{background:#3d1a1a;color:#de5c5c;}
+
+  /* TIPS */
+  .tip-box{background:var(--gray);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;font-size:12px;line-height:1.6;color:var(--muted);}
+  .tip-box strong{color:var(--white);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-top">
+    <div><div class="hero-label">YOUR PERSONAL COACH</div><div class="hero-name">ALVIN</div></div>
+    <div style="text-align:right;"><div style="font-size:9px;color:var(--muted);">EST. SELESAI</div><div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent);">~5–6 BLN</div></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val">92<span class="stat-unit">kg</span></div><div class="stat-label">Berat sekarang</div></div>
+    <div class="stat-box"><div class="stat-val">75<span class="stat-unit">kg</span></div><div class="stat-label">Target</div></div>
+    <div class="stat-box"><div class="stat-val">1.850<span class="stat-unit" style="font-size:8px;">kal</span></div><div class="stat-label">Kalori/hari</div></div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label"><span>Progress ke target</span><span id="pct-label">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;"><span>92kg</span><span>75kg</span></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('calendar')">📅 KALENDER</div>
+  <div class="tab" onclick="switchTab('workout')">💪 WORKOUT</div>
+  <div class="tab" onclick="switchTab('meal')">🍱 MEAL</div>
+  <div class="tab" onclick="switchTab('progress')">📊 PROGRESS</div>
+  <div class="tab" onclick="switchTab('tips')">🔥 TIPS</div>
+</div>
+
+<div class="content">
+
+  <!-- CALENDAR -->
+  <div class="pane active" id="pane-calendar">
+    <div class="section-title">GYM CALENDAR</div>
+
+    <div class="week-strip">
+      <div class="week-strip-title">JADWAL MINGGUAN</div>
+      <div class="week-days-row">
+        <div class="wday-box active-day"><div class="wday-name">SEN</div><div class="wday-type">PUSH</div></div>
+        <div class="wday-box"><div class="wday-name">SEL</div><div class="wday-type">REST</div></div>
+        <div class="wday-box active-day"><div class="wday-name">RAB</div><div class="wday-type">PULL</div></div>
+        <div class="wday-box"><div class="wday-name">KAM</div><div class="wday-type">REST</div></div>
+        <div class="wday-box active-day"><div class="wday-name">JUM</div><div class="wday-type">LEGS</div></div>
+        <div class="wday-box active-day"><div class="wday-name">SAB</div><div class="wday-type">CARDIO</div></div>
+        <div class="wday-box"><div class="wday-name">MIN</div><div class="wday-type">REST</div></div>
+      </div>
+    </div>
+
+    <div class="cal-nav">
+      <button class="cal-btn" onclick="changeMonth(-1)">‹</button>
+      <div class="cal-month" id="cal-month-label"></div>
+      <button class="cal-btn" onclick="changeMonth(1)">›</button>
+    </div>
+
+    <div class="cal-grid">
+      <div class="cal-weekdays">
+        <div class="cal-wd">SEN</div><div class="cal-wd">SEL</div><div class="cal-wd">RAB</div>
+        <div class="cal-wd">KAM</div><div class="cal-wd">JUM</div><div class="cal-wd">SAB</div><div class="cal-wd">MIN</div>
+      </div>
+      <div class="cal-days" id="cal-days"></div>
+    </div>
+
+    <div class="cal-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#ff7eb3;"></div>Push</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#5bc8ff;"></div>Pull</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent);"></div>Legs</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div>Cardio</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#5cde5c;"></div>Logged ✓</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gray3);"></div>Rest</div>
+    </div>
+
+    <div style="background:var(--gray);border-radius:10px;padding:12px;" id="selected-day-info">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">TAP TANGGAL UNTUK DETAIL</div>
+      <div style="font-size:13px;font-weight:500;">Pilih tanggal di kalender ☝️</div>
+    </div>
+  </div>
+
+  <!-- WORKOUT -->
+  <div class="pane" id="pane-workout">
+    <div class="section-title">4-DAY SPLIT</div>
+    <div class="day-tabs">
+      <button class="day-btn active" onclick="switchDay('push',this)">PUSH</button>
+      <button class="day-btn" onclick="switchDay('pull',this)">PULL</button>
+      <button class="day-btn" onclick="switchDay('legs',this)">LEGS</button>
+      <button class="day-btn" onclick="switchDay('cardio',this)">CARDIO+ABS</button>
+    </div>
+    <div class="day-card active" id="day-push">
+      <div class="day-header"><div><div class="day-name">PUSH DAY</div><div style="font-size:10px;color:var(--muted);">Chest · Shoulders · Triceps</div></div><div class="day-focus">SENIN</div></div>
+      <div class="exercise-list">
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">1</div><div class="ex-info"><div class="ex-name">Bench Press</div><div class="ex-sets">4 sets × 8–10 reps · rest 90s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">2</div><div class="ex-info"><div class="ex-name">Incline Dumbbell Press</div><div class="ex-sets">3 sets × 10–12 reps · rest 60s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">3</div><div class="ex-info"><div class="ex-name">Overhead Press</div><div class="ex-sets">3 sets × 10 reps · rest 90s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">4</div><div class="ex-info"><div class="ex-name">Lateral Raise</div><div class="ex-sets">3 sets × 15 reps · rest 45s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">5</div><div class="ex-info"><div class="ex-name">Cable Flye</div><div class="ex-sets">3 sets × 12–15 reps · rest 45s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">6</div><div class="ex-info"><div class="ex-name">Tricep Pushdown</div><div class="ex-sets">3 sets × 12 reps · rest 45s</div></div><div class="ex-check"></div></div>
+      </div>
+      <div class="rest-badge">⏱ Estimasi total: 50–60 menit</div>
+    </div>
+    <div class="day-card" id="day-pull">
+      <div class="day-header"><div><div class="day-name">PULL DAY</div><div style="font-size:10px;color:var(--muted);">Back · Biceps · Rear Delt</div></div><div class="day-focus">RABU</div></div>
+      <div class="exercise-list">
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">1</div><div class="ex-info"><div class="ex-name">Pull Up / Lat Pulldown</div><div class="ex-sets">4 sets × 8–10 reps · rest 90s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">2</div><div class="ex-info"><div class="ex-name">Barbell Row</div><div class="ex-sets">4 sets × 8–10 reps · rest 90s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">3</div><div class="ex-info"><div class="ex-name">Seated Cable Row</div><div class="ex-sets">3 sets × 12 reps · rest 60s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">4</div><div class="ex-info"><div class="ex-name">Face Pull</div><div class="ex-sets">3 sets × 15 reps · rest 45s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">5</div><div class="ex-info"><div class="ex-name">Barbell Curl</div><div class="ex-sets">3 sets × 10–12 reps · rest 45s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">6</div><div class="ex-info"><div class="ex-name">Hammer Curl</div><div class="ex-sets">3 sets × 12 reps · rest 45s</div></div><div class="ex-check"></div></div>
+      </div>
+      <div class="rest-badge">⏱ Estimasi total: 50–60 menit</div>
+    </div>
+    <div class="day-card" id="day-legs">
+      <div class="day-header"><div><div class="day-name">LEG DAY</div><div style="font-size:10px;color:var(--muted);">Quads · Hamstring · Glutes · Calves</div></div><div class="day-focus">JUM'AT</div></div>
+      <div class="exercise-list">
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">1</div><div class="ex-info"><div class="ex-name">Squat</div><div class="ex-sets">4 sets × 8 reps · rest 2 menit</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">2</div><div class="ex-info"><div class="ex-name">Romanian Deadlift</div><div class="ex-sets">3 sets × 10 reps · rest 90s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">3</div><div class="ex-info"><div class="ex-name">Leg Press</div><div class="ex-sets">3 sets × 12 reps · rest 90s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">4</div><div class="ex-info"><div class="ex-name">Leg Curl</div><div class="ex-sets">3 sets × 12 reps · rest 60s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">5</div><div class="ex-info"><div class="ex-name">Walking Lunge</div><div class="ex-sets">3 sets × 20 langkah · rest 60s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">6</div><div class="ex-info"><div class="ex-name">Calf Raise</div><div class="ex-sets">4 sets × 20 reps · rest 30s</div></div><div class="ex-check"></div></div>
+      </div>
+      <div class="rest-badge">⏱ Estimasi total: 55–65 menit</div>
+    </div>
+    <div class="day-card" id="day-cardio">
+      <div class="day-header"><div><div class="day-name">CARDIO + ABS</div><div style="font-size:10px;color:var(--muted);">Fat Burn · Core Strength</div></div><div class="day-focus">SABTU</div></div>
+      <div class="exercise-list">
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">1</div><div class="ex-info"><div class="ex-name">Incline Treadmill Walk</div><div class="ex-sets">20–30 menit · incline 8–12 · speed 5–6</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">2</div><div class="ex-info"><div class="ex-name">Plank</div><div class="ex-sets">3 sets × 45–60 detik · rest 30s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">3</div><div class="ex-info"><div class="ex-name">Cable Crunch</div><div class="ex-sets">3 sets × 15 reps · rest 45s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">4</div><div class="ex-info"><div class="ex-name">Hanging Knee Raise</div><div class="ex-sets">3 sets × 12 reps · rest 45s</div></div><div class="ex-check"></div></div>
+        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">5</div><div class="ex-info"><div class="ex-name">Russian Twist</div><div class="ex-sets">3 sets × 20 reps · rest 30s</div></div><div class="ex-check"></div></div>
+      </div>
+      <div class="rest-badge">⏱ Estimasi total: 45–55 menit</div>
+    </div>
+  </div>
+
+  <!-- MEAL -->
+  <div class="pane" id="pane-meal">
+    <div class="section-title">MEAL PLAN</div>
+    <div class="calorie-ring-wrap">
+      <svg width="64" height="64" viewBox="0 0 64 64" style="flex-shrink:0;">
+        <circle cx="32" cy="32" r="26" fill="none" stroke="#1e1e1e" stroke-width="6"/>
+        <circle cx="32" cy="32" r="26" fill="none" stroke="#d4f000" stroke-width="6" stroke-dasharray="163.4" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 32 32)"/>
+        <text x="32" y="36" text-anchor="middle" font-family="Bebas Neue" font-size="13" fill="#d4f000">100%</text>
+      </svg>
+      <div class="ring-info">
+        <div class="ring-total">1.850 <span style="font-size:12px;font-family:'DM Sans'">kal/hari</span></div>
+        <div class="ring-label">Deficit ~550 kal dari TDEE</div>
+        <div class="macro-row">
+          <div class="macro-item"><div class="macro-val macro-p">165g</div><div class="macro-name">Protein</div></div>
+          <div class="macro-item"><div class="macro-val macro-c">185g</div><div class="macro-name">Carbs</div></div>
+          <div class="macro-item"><div class="macro-val macro-f">55g</div><div class="macro-name">Fat</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="meal-list">
+      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">06.30</div><div class="meal-name">Sarapan</div></div><div class="meal-kcal">450 kal ›</div></div><div class="meal-body"><div class="food-item">Nasi merah<span>150g · 175 kal</span></div><div class="food-item">Telur rebus<span>3 butir · 210 kal</span></div><div class="food-item">Tempe goreng<span>50g · 45 kal</span></div><div class="food-item">Sayur bening<span>1 mangkok · 20 kal</span></div></div></div>
+      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">10.00</div><div class="meal-name">Snack Pagi</div></div><div class="meal-kcal">200 kal ›</div></div><div class="meal-body"><div class="food-item">Greek yogurt / susu protein<span>1 cup · 120 kal</span></div><div class="food-item">Pisang<span>1 buah · 80 kal</span></div></div></div>
+      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">13.00</div><div class="meal-name">Makan Siang</div></div><div class="meal-kcal">550 kal ›</div></div><div class="meal-body"><div class="food-item">Nasi putih/merah<span>150g · 195 kal</span></div><div class="food-item">Ayam dada panggang<span>150g · 250 kal</span></div><div class="food-item">Sayur tumis / lalapan<span>1 porsi · 40 kal</span></div><div class="food-item">Tahu goreng<span>100g · 65 kal</span></div></div></div>
+      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">16.00</div><div class="meal-name">Pre-Workout</div></div><div class="meal-kcal">250 kal ›</div></div><div class="meal-body"><div class="food-item">Roti gandum<span>2 lembar · 130 kal</span></div><div class="food-item">Telur ceplok / rebus<span>2 butir · 120 kal</span></div></div></div>
+      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">19.30</div><div class="meal-name">Post-Workout / Makan Malam</div></div><div class="meal-kcal">400 kal ›</div></div><div class="meal-body"><div class="food-item">Nasi merah / ubi<span>100g · 130 kal</span></div><div class="food-item">Ikan / daging sapi<span>150g · 200 kal</span></div><div class="food-item">Brokoli / kangkung<span>1 porsi · 30 kal</span></div><div class="food-item">Tahu/tempe<span>50g · 40 kal</span></div></div></div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="pane" id="pane-progress">
+    <div class="section-title">WEIGHT LOG</div>
+    <div class="weight-input-wrap">
+      <div class="weight-label">Catat berat hari ini (kg)</div>
+      <div class="weight-row">
+        <input class="weight-input" type="number" id="weight-in" placeholder="e.g. 91.5" step="0.1"/>
+        <button class="weight-btn" onclick="logWeight()">CATAT</button>
+      </div>
+    </div>
+    <div class="timeline" id="timeline">
+      <div class="timeline-row"><div class="tl-date">Start</div><div class="tl-weight">92.0 kg</div><div class="tl-diff" style="background:#1a1a1a;color:var(--muted);">START</div></div>
+    </div>
+  </div>
+
+  <!-- TIPS -->
+  <div class="pane" id="pane-tips">
+    <div class="section-title">PRO TIPS</div>
+    <div class="tip-box"><strong>🥩 Protein adalah prioritas utama.</strong> Target 165g protein/hari. Ini yang jaga muscle mass kamu saat cutting.</div>
+    <div class="tip-box"><strong>💧 Minum 3–4 liter air per hari.</strong> Bantu metabolisme, ngurangin retensi air, dan bikin kamu lebih kenyang.</div>
+    <div class="tip-box"><strong>😴 Tidur 7–8 jam itu latihan juga.</strong> Growth hormone paling banyak diproduksi saat tidur. Kurang tidur = cortisol naik = fat burn melambat.</div>
+    <div class="tip-box"><strong>📏 Jangan cuma lihat timbangan.</strong> Track juga ukuran lingkar perut tiap 2 minggu.</div>
+    <div class="tip-box"><strong>🏃 Incline walk > lari untuk fat loss.</strong> Kalori terbakar hampir sama tapi tanpa impact ke lutut dan nafsu makan tidak meledak.</div>
+    <div class="tip-box"><strong>📅 Progressive overload tiap minggu.</strong> Tambah berat atau reps sedikit tiap minggu — kalau stagnan, tidak ada hasil.</div>
+    <div class="tip-box"><strong>🍚 Cheat meal boleh, cheat day tidak.</strong> 1 cheat meal/minggu oke. Tapi full cheat day bisa hapus deficit 5–6 hari sekaligus.</div>
+    <div class="tip-box"><strong>⏱ Target realistis: 0.5–0.7kg/minggu.</strong> 17kg dalam 5–6 bulan sangat achievable dengan plan ini.</div>
+  </div>
+
+</div>
+
+<script>
+// TAB & DAY SWITCHING
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(el=>el.classList.remove('active'));
+  const tabs=['calendar','workout','meal','progress','tips'];
+  document.querySelectorAll('.tab')[tabs.indexOf(t)].classList.add('active');
+  document.getElementById('pane-'+t).classList.add('active');
+}
+function switchDay(d,btn){
+  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.day-card').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('day-'+d).classList.add('active');
+}
+function toggleEx(el){el.querySelector('.ex-check').classList.toggle('done');}
+function toggleMeal(el){el.nextElementSibling.classList.toggle('open');}
+
+// CALENDAR
+const gymDayType={1:'push',3:'pull',5:'legs',6:'cardio'}; // 0=Sun,1=Mon,...
+const gymLabels={push:'💪 Push Day',pull:'🔵 Pull Day',legs:'🟡 Leg Day',cardio:'🟣 Cardio+Abs'};
+const gymColors={push:'#ff7eb3',pull:'#5bc8ff',legs:'#d4f000',cardio:'#a78bfa'};
+let calYear,calMonth;
+let loggedDays={};
+let weightLogs=[{date:'Start',weight:92.0,diff:null}];
+
+function initCal(){
+  const now=new Date();
+  calYear=now.getFullYear();
+  calMonth=now.getMonth();
+  renderCal();
+}
+
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCal();
+}
+
+function renderCal(){
+  const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  document.getElementById('cal-month-label').textContent=months[calMonth]+' '+calYear;
+  const firstDay=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0);
+  const today=new Date();
+  // Monday-first: convert day
+  let startDow=firstDay.getDay(); // 0=Sun
+  startDow=(startDow===0)?6:startDow-1; // Mon=0
+
+  const container=document.getElementById('cal-days');
+  container.innerHTML='';
+
+  // empty cells
+  for(let i=0;i<startDow;i++){
+    const el=document.createElement('div');
+    el.className='cal-day empty';
+    el.innerHTML='<div class="day-num"> </div>';
+    container.appendChild(el);
+  }
+
+  for(let d=1;d<=lastDay.getDate();d++){
+    const date=new Date(calYear,calMonth,d);
+    const dow=date.getDay(); // 0=Sun
+    const el=document.createElement('div');
+    el.className='cal-day';
+    const isToday=date.toDateString()===today.toDateString();
+    if(isToday)el.classList.add('today');
+    const dateKey=`${calYear}-${calMonth}-${d}`;
+    const gymType=gymDayType[dow];
+    let dot='';
+    if(loggedDays[dateKey]){
+      dot=`<div class="cal-dot dot-logged"></div>`;
+    } else if(gymType){
+      dot=`<div class="cal-dot" style="background:${gymColors[gymType]};"></div>`;
+    } else {
+      dot=`<div class="cal-dot dot-rest"></div>`;
+    }
+    el.innerHTML=`<div class="day-num">${d}</div>${dot}`;
+    el.onclick=()=>selectDay(d,dow,gymType,dateKey);
+    container.appendChild(el);
+  }
+}
+
+function selectDay(d,dow,gymType,dateKey){
+  const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const info=document.getElementById('selected-day-info');
+  const dayNames=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  let html=`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${dayNames[dow]}, ${d} ${months[calMonth]} ${calYear}</div>`;
+  if(gymType){
+    html+=`<div style="font-size:14px;font-weight:600;color:${gymColors[gymType]};margin-bottom:8px;">${gymLabels[gymType]}</div>`;
+    const typeMap={push:'push',pull:'pull',legs:'legs',cardio:'cardio'};
+    html+=`<div style="font-size:11px;color:var(--muted);">Tap tombol di bawah untuk lihat detail workout:</div>`;
+    html+=`<button onclick="switchTab('workout');setTimeout(()=>{document.querySelector('[onclick*=\\'${typeMap[gymType]}\\']').click();},50);" style="margin-top:8px;background:${gymColors[gymType]};color:var(--black);border:none;border-radius:8px;padding:7px 14px;font-weight:700;font-size:12px;cursor:pointer;">Lihat ${gymLabels[gymType]} →</button>`;
+    if(!loggedDays[dateKey]){
+      html+=`<button onclick="markDone('${dateKey}')" style="margin-top:6px;margin-left:6px;background:var(--gray2);color:var(--white);border:1px solid var(--gray3);border-radius:8px;padding:7px 14px;font-weight:600;font-size:12px;cursor:pointer;">✓ Tandai Selesai</button>`;
+    } else {
+      html+=`<div style="margin-top:8px;font-size:12px;color:#5cde5c;">✓ Workout ini sudah dicatat!</div>`;
+    }
+  } else {
+    html+=`<div style="font-size:14px;font-weight:600;color:var(--muted);">Rest Day 😴</div>`;
+    html+=`<div style="font-size:11px;color:var(--muted);margin-top:4px;">Istirahat adalah bagian dari program. Recovery = growth.</div>`;
+  }
+  info.innerHTML=html;
+}
+
+function markDone(dateKey){
+  loggedDays[dateKey]=true;
+  renderCal();
+  const parts=dateKey.split('-');
+  selectDay(parseInt(parts[2]),new Date(parseInt(parts[0]),parseInt(parts[1]),parseInt(parts[2])).getDay(),gymDayType[new Date(parseInt(parts[0]),parseInt(parts[1]),parseInt(parts[2])).getDay()],dateKey);
+}
+
+// WEIGHT LOG
+function logWeight(){
+  const val=parseFloat(document.getElementById('weight-in').value);
+  if(isNaN(val)||val<40||val>200){alert('Masukkan berat yang valid ya!');return;}
+  const prev=weightLogs[weightLogs.length-1].weight;
+  const diff=+(val-prev).toFixed(1);
+  const today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+  weightLogs.push({date:today,weight:val,diff});
+  renderLogs();
+  const lost=Math.max(0,92-val);
+  const pct=Math.min(100,Math.round((lost/17)*100));
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('pct-label').textContent=pct+'%';
+  document.getElementById('weight-in').value='';
+}
+function renderLogs(){
+  const tl=document.getElementById('timeline');
+  tl.innerHTML='';
+  [...weightLogs].reverse().forEach(l=>{
+    const diffHtml=l.diff===null
+      ?`<div class="tl-diff" style="background:#1a1a1a;color:var(--muted);">START</div>`
+      :l.diff<=0
+        ?`<div class="tl-diff tl-down">${l.diff} kg</div>`
+        :`<div class="tl-diff tl-up">+${l.diff} kg</div>`;
+    tl.innerHTML+=`<div class="timeline-row"><div class="tl-date">${l.date}</div><div class="tl-weight">${l.weight.toFixed(1)} kg</div>${diffHtml}</div>`;
+  });
+}
+
+// INIT
+initCal();
+setTimeout(()=>{document.getElementById('prog-fill').style.width='0%';},300);
+</script>
+</body>
+</html>
