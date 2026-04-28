@@ -4,512 +4,421 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Alvin Gym Coach</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  :root{--black:#0a0a0a;--white:#f5f3ee;--accent:#d4f000;--gray:#1e1e1e;--gray2:#2a2a2a;--gray3:#3a3a3a;--muted:#888;}
-  body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
-  .container{max-width:480px;margin:0 auto;}
-
-  /* HERO */
-  .hero{background:var(--black);padding:20px 16px 14px;border-bottom:1px solid var(--gray2);}
-  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
-  .hero-label{font-size:10px;color:var(--muted);letter-spacing:.12em;}
-  .hero-name{font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;color:var(--accent);letter-spacing:2px;}
-  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
-  .stat-box{background:var(--gray);border-radius:8px;padding:8px 10px;}
-  .stat-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--white);line-height:1;}
-  .stat-unit{font-size:9px;color:var(--accent);font-weight:600;}
-  .stat-label{font-size:9px;color:var(--muted);margin-top:1px;}
-  .progress-bar-wrap{margin-top:4px;}
-  .progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;}
-  .progress-track{background:var(--gray2);border-radius:20px;height:7px;overflow:hidden;}
-  .progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),#a8c200);transition:width 1s cubic-bezier(.4,0,.2,1);}
-
-  /* TABS */
-  .tabs{display:flex;border-bottom:1px solid var(--gray2);background:var(--black);position:sticky;top:0;z-index:10;overflow-x:auto;}
-  .tabs::-webkit-scrollbar{display:none;}
-  .tab{flex:1;min-width:60px;padding:11px 4px;font-size:11px;font-weight:500;color:var(--muted);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
-  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-  .content{padding:14px 14px 80px;}
-  .section-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--accent);margin-bottom:10px;}
-  .pane{display:none;}
-  .pane.active{display:block;}
-
-  /* CALENDAR */
-  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-  .cal-month{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;}
-  .cal-btn{background:var(--gray2);border:none;color:var(--white);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
-  .cal-grid{background:var(--gray);border-radius:10px;overflow:hidden;margin-bottom:12px;}
-  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:var(--gray2);}
-  .cal-wd{text-align:center;padding:6px 2px;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.06em;}
-  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);}
-  .cal-day{text-align:center;padding:5px 2px;font-size:12px;cursor:pointer;min-height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
-  .cal-day.empty{cursor:default;}
-  .cal-day.today .day-num{background:var(--accent);color:var(--black);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;}
-  .day-num{font-size:12px;}
-  .cal-dot{width:5px;height:5px;border-radius:50%;}
-  .cal-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
-  .legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);}
-  .legend-dot{width:7px;height:7px;border-radius:50%;}
-  .week-strip{background:var(--gray);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
-  .week-strip-title{font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:.06em;}
-  .week-days-row{display:flex;gap:4px;}
-  .wday-box{flex:1;border-radius:6px;padding:6px 4px;text-align:center;background:var(--gray2);}
-  .wday-box.active-day{background:var(--accent);}
-  .wday-name{font-size:9px;font-weight:600;color:var(--muted);}
-  .wday-box.active-day .wday-name,.wday-box.active-day .wday-type{color:var(--black);}
-  .wday-type{font-size:8px;color:var(--muted);margin-top:2px;}
-  .selected-day-info{background:var(--gray);border-radius:10px;padding:12px;}
-
-  /* WORKOUT */
-  .day-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
-  .day-btn{font-size:10px;font-weight:600;padding:5px 10px;border-radius:20px;border:1px solid var(--gray3);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.04em;}
-  .day-btn.active{background:var(--accent);color:var(--black);border-color:var(--accent);}
-  .day-card{display:none;}
-  .day-card.active{display:block;}
-  .day-header{background:var(--gray);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
-  .day-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;}
-  .day-focus{font-size:10px;color:var(--accent);font-weight:600;letter-spacing:.06em;}
-  .exercise-list{display:flex;flex-direction:column;gap:5px;}
-  .ex-row{background:var(--gray);border-radius:8px;padding:9px 10px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background .15s;}
-  .ex-row:hover{background:var(--gray2);}
-  .ex-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent);width:18px;flex-shrink:0;}
-  .ex-info{flex:1;}
-  .ex-name{font-size:12px;font-weight:500;}
-  .ex-sets{font-size:10px;color:var(--muted);margin-top:1px;}
-  .ex-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--gray3);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
-  .ex-check.done{background:var(--accent);border-color:var(--accent);}
-  .ex-check.done::after{content:'✓';font-size:10px;color:var(--black);font-weight:700;}
-  .rest-badge{background:var(--gray2);border-radius:6px;padding:6px 10px;font-size:10px;color:var(--muted);margin-top:6px;text-align:center;}
-
-  /* MEAL */
-  .calorie-ring-wrap{display:flex;align-items:center;gap:12px;background:var(--gray);border-radius:12px;padding:12px;margin-bottom:12px;}
-  .ring-info{flex:1;}
-  .ring-total{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);line-height:1;}
-  .ring-label{font-size:10px;color:var(--muted);margin-bottom:6px;}
-  .macro-row{display:flex;gap:6px;}
-  .macro-item{flex:1;text-align:center;}
-  .macro-val{font-size:13px;font-weight:600;}
-  .macro-name{font-size:9px;color:var(--muted);}
-  .macro-p{color:#5bc8ff;}.macro-c{color:#ffb347;}.macro-f{color:#ff7eb3;}
-  .meal-list{display:flex;flex-direction:column;gap:6px;}
-  .meal-card{background:var(--gray);border-radius:10px;overflow:hidden;}
-  .meal-header{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
-  .meal-time{font-size:10px;color:var(--muted);}
-  .meal-name{font-size:12px;font-weight:600;}
-  .meal-kcal{font-size:11px;color:var(--accent);font-weight:600;}
-  .meal-body{padding:0 12px 10px;display:none;}
-  .meal-body.open{display:block;}
-  .food-item{font-size:11px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--gray2);}
-  .food-item:last-child{border-bottom:none;}
-  .food-item span{float:right;color:var(--white);}
-
-  /* PROGRESS */
-  .weight-input-wrap{background:var(--gray);border-radius:10px;padding:12px;margin-bottom:12px;}
-  .weight-label{font-size:10px;color:var(--muted);margin-bottom:6px;}
-  .weight-row{display:flex;gap:6px;}
-  .weight-input{flex:1;background:var(--gray2);border:1px solid var(--gray3);border-radius:8px;padding:8px 10px;color:var(--white);font-size:15px;font-family:'DM Sans',sans-serif;}
-  .weight-btn{background:var(--accent);color:var(--black);border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;}
-  .timeline{display:flex;flex-direction:column;gap:5px;}
-  .timeline-row{background:var(--gray);border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;}
-  .tl-date{font-size:11px;color:var(--muted);}
-  .tl-weight{font-size:13px;font-weight:600;}
-  .tl-diff{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;}
-  .tl-down{background:#1a3d1a;color:#5cde5c;}
-  .tl-up{background:#3d1a1a;color:#de5c5c;}
-
-  /* TIPS */
-  .tip-box{background:var(--gray);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;font-size:12px;line-height:1.6;color:var(--muted);}
-  .tip-box strong{color:var(--white);}
-
-  /* INSTALL BANNER */
-  .install-banner{background:var(--gray2);border:1px solid var(--gray3);border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
-  .install-text{flex:1;font-size:11px;color:var(--muted);line-height:1.5;}
-  .install-text strong{color:var(--white);display:block;margin-bottom:2px;}
-  .install-btn{background:var(--accent);color:var(--black);border:none;border-radius:8px;padding:7px 12px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap;}
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--black:#0a0a0a;--white:#f5f3ee;--accent:#d4f000;--gray:#1e1e1e;--gray2:#2a2a2a;--gray3:#3a3a3a;--muted:#777;}
+body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;}
+.wrap{max-width:480px;margin:0 auto;}
+.hero{padding:18px 16px 12px;border-bottom:1px solid var(--gray2);}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.hero-label{font-size:10px;color:var(--muted);letter-spacing:.12em;}
+.hero-name{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;color:var(--accent);letter-spacing:2px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
+.stat-box{background:var(--gray);border-radius:8px;padding:8px 10px;}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:20px;line-height:1;}
+.stat-unit{font-size:9px;color:var(--accent);font-weight:600;}
+.stat-label{font-size:9px;color:var(--muted);margin-top:1px;}
+.prog-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;}
+.prog-track{background:var(--gray2);border-radius:20px;height:7px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),#a0c000);width:0%;transition:width 1s ease;}
+.prog-ends{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px;}
+.tabs{display:flex;border-bottom:1px solid var(--gray2);position:sticky;top:0;background:var(--black);z-index:99;overflow-x:auto;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;min-width:58px;padding:10px 2px;font-size:11px;font-weight:500;color:var(--muted);text-align:center;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.tab.active{color:var(--accent);border-color:var(--accent);}
+.content{padding:14px 14px 80px;}
+.pane{display:none;}
+.pane.active{display:block;}
+.sec{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--accent);margin-bottom:10px;}
+.week-strip{background:var(--gray);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+.wstrip-title{font-size:10px;color:var(--muted);margin-bottom:7px;letter-spacing:.05em;}
+.wstrip-row{display:flex;gap:4px;}
+.wday{flex:1;border-radius:6px;padding:6px 2px;text-align:center;background:var(--gray2);}
+.wday.gym{background:var(--accent);}
+.wday-n{font-size:9px;font-weight:600;color:var(--muted);}
+.wday.gym .wday-n,.wday.gym .wday-t{color:var(--black);}
+.wday-t{font-size:8px;color:var(--muted);margin-top:1px;}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.cal-mo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+.cal-btn{background:var(--gray2);border:none;color:var(--white);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.cal-grid{background:var(--gray);border-radius:10px;overflow:hidden;margin-bottom:10px;}
+.cal-wds{display:grid;grid-template-columns:repeat(7,1fr);background:var(--gray2);}
+.cal-wd{text-align:center;padding:5px 0;font-size:9px;font-weight:600;color:var(--muted);}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);}
+.cal-day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:34px;cursor:pointer;padding:3px 0;}
+.cal-day.empty{cursor:default;}
+.cal-day.today .dn{background:var(--accent);color:var(--black);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.dn{font-size:11px;}
+.cdot{width:5px;height:5px;border-radius:50%;}
+.cal-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
+.day-info{background:var(--gray);border-radius:10px;padding:12px;}
+.day-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.dbtn{font-size:10px;font-weight:600;padding:5px 10px;border-radius:20px;border:1px solid var(--gray3);background:transparent;color:var(--muted);cursor:pointer;}
+.dbtn.active{background:var(--accent);color:var(--black);border-color:var(--accent);}
+.dc{display:none;}
+.dc.active{display:block;}
+.dh{background:var(--gray);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;}
+.dn2{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;}
+.df{font-size:10px;color:var(--accent);font-weight:600;}
+.ex-list{display:flex;flex-direction:column;gap:5px;}
+.ex{background:var(--gray);border-radius:8px;padding:9px 10px;display:flex;align-items:center;gap:8px;cursor:pointer;}
+.ex:hover{background:var(--gray2);}
+.en{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--accent);width:16px;flex-shrink:0;}
+.ei{flex:1;}
+.ename{font-size:12px;font-weight:500;}
+.esets{font-size:10px;color:var(--muted);margin-top:1px;}
+.eck{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--gray3);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.eck.done{background:var(--accent);border-color:var(--accent);}
+.eck.done::after{content:'✓';font-size:10px;color:var(--black);font-weight:700;}
+.rest-badge{background:var(--gray2);border-radius:6px;padding:6px 10px;font-size:10px;color:var(--muted);margin-top:6px;text-align:center;}
+.cal-ring-wrap{display:flex;align-items:center;gap:12px;background:var(--gray);border-radius:12px;padding:12px;margin-bottom:12px;}
+.ring-info{flex:1;}
+.ring-tot{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--accent);line-height:1;}
+.ring-lbl{font-size:10px;color:var(--muted);margin-bottom:5px;}
+.macro-row{display:flex;gap:6px;}
+.macro-i{flex:1;text-align:center;}
+.mv{font-size:12px;font-weight:600;}
+.mn{font-size:9px;color:var(--muted);}
+.mp{color:#5bc8ff;}.mc{color:#ffb347;}.mf{color:#ff7eb3;}
+.meals{display:flex;flex-direction:column;gap:6px;}
+.mc2{background:var(--gray);border-radius:10px;overflow:hidden;}
+.mh{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.mt2{font-size:10px;color:var(--muted);}
+.mn2{font-size:12px;font-weight:600;}
+.mk{font-size:11px;color:var(--accent);font-weight:600;}
+.mb{padding:0 12px 10px;display:none;}
+.mb.open{display:block;}
+.fi{font-size:11px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--gray2);}
+.fi:last-child{border-bottom:none;}
+.fi span{float:right;color:var(--white);}
+.wi-wrap{background:var(--gray);border-radius:10px;padding:12px;margin-bottom:10px;}
+.wi-label{font-size:10px;color:var(--muted);margin-bottom:6px;}
+.wi-row{display:flex;gap:6px;}
+.wi{flex:1;background:var(--gray2);border:1px solid var(--gray3);border-radius:8px;padding:8px 10px;color:var(--white);font-size:15px;font-family:'DM Sans',sans-serif;}
+.wb{background:var(--accent);color:var(--black);border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;}
+.tl{display:flex;flex-direction:column;gap:5px;}
+.tl-row{background:var(--gray);border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;}
+.tl-d{font-size:11px;color:var(--muted);}
+.tl-w{font-size:13px;font-weight:600;}
+.tl-diff{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;}
+.down{background:#1a3d1a;color:#5cde5c;}
+.up{background:#3d1a1a;color:#de5c5c;}
+.neutral{background:#1a1a1a;color:var(--muted);}
+.tip{background:var(--gray);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;font-size:12px;line-height:1.6;color:var(--muted);}
+.tip strong{color:var(--white);}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
 
 <div class="hero">
   <div class="hero-top">
     <div><div class="hero-label">YOUR PERSONAL COACH</div><div class="hero-name">ALVIN</div></div>
-    <div style="text-align:right;"><div style="font-size:9px;color:var(--muted);">EST. SELESAI</div><div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent);">~5–6 BLN</div></div>
+    <div style="text-align:right"><div style="font-size:9px;color:var(--muted)">EST. SELESAI</div><div style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--accent)">~5-6 BLN</div></div>
   </div>
   <div class="stats-row">
-    <div class="stat-box"><div class="stat-val" id="current-weight-display">92<span class="stat-unit">kg</span></div><div class="stat-label">Berat sekarang</div></div>
+    <div class="stat-box"><div class="stat-val" id="cur-w">92<span class="stat-unit">kg</span></div><div class="stat-label">Berat sekarang</div></div>
     <div class="stat-box"><div class="stat-val">75<span class="stat-unit">kg</span></div><div class="stat-label">Target</div></div>
-    <div class="stat-box"><div class="stat-val">1.850<span class="stat-unit" style="font-size:8px;">kal</span></div><div class="stat-label">Kalori/hari</div></div>
+    <div class="stat-box"><div class="stat-val">1.850<span class="stat-unit" style="font-size:8px">kal</span></div><div class="stat-label">Kalori/hari</div></div>
   </div>
-  <div class="progress-bar-wrap">
-    <div class="progress-label"><span>Progress ke target</span><span id="pct-label">0%</span></div>
-    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
-    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;"><span>92kg (start)</span><span>75kg (target)</span></div>
-  </div>
+  <div class="prog-label"><span>Progress ke target</span><span id="pct">0%</span></div>
+  <div class="prog-track"><div class="prog-fill" id="pfill"></div></div>
+  <div class="prog-ends"><span>92kg (start)</span><span>75kg (target)</span></div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('calendar')">📅 KALENDER</div>
-  <div class="tab" onclick="switchTab('workout')">💪 WORKOUT</div>
-  <div class="tab" onclick="switchTab('meal')">🍱 MEAL</div>
-  <div class="tab" onclick="switchTab('progress')">📊 PROGRESS</div>
-  <div class="tab" onclick="switchTab('tips')">🔥 TIPS</div>
+  <div class="tab active" onclick="goTab('cal')">📅 KALENDER</div>
+  <div class="tab" onclick="goTab('wo')">💪 WORKOUT</div>
+  <div class="tab" onclick="goTab('meal')">🍱 MEAL</div>
+  <div class="tab" onclick="goTab('prog')">📊 PROGRESS</div>
+  <div class="tab" onclick="goTab('tips')">🔥 TIPS</div>
 </div>
 
 <div class="content">
 
-  <!-- CALENDAR -->
-  <div class="pane active" id="pane-calendar">
-    <div class="section-title">GYM CALENDAR</div>
-    <div class="week-strip">
-      <div class="week-strip-title">JADWAL MINGGUAN</div>
-      <div class="week-days-row">
-        <div class="wday-box active-day"><div class="wday-name">SEN</div><div class="wday-type">PUSH</div></div>
-        <div class="wday-box"><div class="wday-name">SEL</div><div class="wday-type">REST</div></div>
-        <div class="wday-box active-day"><div class="wday-name">RAB</div><div class="wday-type">PULL</div></div>
-        <div class="wday-box"><div class="wday-name">KAM</div><div class="wday-type">REST</div></div>
-        <div class="wday-box active-day"><div class="wday-name">JUM</div><div class="wday-type">LEGS</div></div>
-        <div class="wday-box active-day"><div class="wday-name">SAB</div><div class="wday-type">CARDIO</div></div>
-        <div class="wday-box"><div class="wday-name">MIN</div><div class="wday-type">REST</div></div>
-      </div>
-    </div>
-    <div class="cal-nav">
-      <button class="cal-btn" onclick="changeMonth(-1)">&#8249;</button>
-      <div class="cal-month" id="cal-month-label"></div>
-      <button class="cal-btn" onclick="changeMonth(1)">&#8250;</button>
-    </div>
-    <div class="cal-grid">
-      <div class="cal-weekdays">
-        <div class="cal-wd">SEN</div><div class="cal-wd">SEL</div><div class="cal-wd">RAB</div>
-        <div class="cal-wd">KAM</div><div class="cal-wd">JUM</div><div class="cal-wd">SAB</div><div class="cal-wd">MIN</div>
-      </div>
-      <div class="cal-days" id="cal-days"></div>
-    </div>
-    <div class="cal-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#ff7eb3;"></div>Push</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#5bc8ff;"></div>Pull</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--accent);"></div>Legs</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div>Cardio</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#5cde5c;"></div>Logged ✓</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#333;"></div>Rest</div>
-    </div>
-    <div class="selected-day-info" id="selected-day-info">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">TAP TANGGAL UNTUK DETAIL</div>
-      <div style="font-size:13px;font-weight:500;">Pilih tanggal di kalender ☝️</div>
+<div class="pane active" id="pane-cal">
+  <div class="sec">GYM CALENDAR</div>
+  <div class="week-strip">
+    <div class="wstrip-title">JADWAL MINGGUAN</div>
+    <div class="wstrip-row">
+      <div class="wday gym"><div class="wday-n">SEN</div><div class="wday-t">PUSH</div></div>
+      <div class="wday"><div class="wday-n">SEL</div><div class="wday-t">REST</div></div>
+      <div class="wday gym"><div class="wday-n">RAB</div><div class="wday-t">PULL</div></div>
+      <div class="wday"><div class="wday-n">KAM</div><div class="wday-t">REST</div></div>
+      <div class="wday gym"><div class="wday-n">JUM</div><div class="wday-t">LEGS</div></div>
+      <div class="wday gym"><div class="wday-n">SAB</div><div class="wday-t">CARDIO</div></div>
+      <div class="wday"><div class="wday-n">MIN</div><div class="wday-t">REST</div></div>
     </div>
   </div>
+  <div class="cal-nav">
+    <button class="cal-btn" onclick="chMo(-1)">&#8249;</button>
+    <div class="cal-mo" id="mo-label"></div>
+    <button class="cal-btn" onclick="chMo(1)">&#8250;</button>
+  </div>
+  <div class="cal-grid">
+    <div class="cal-wds">
+      <div class="cal-wd">SEN</div><div class="cal-wd">SEL</div><div class="cal-wd">RAB</div>
+      <div class="cal-wd">KAM</div><div class="cal-wd">JUM</div><div class="cal-wd">SAB</div><div class="cal-wd">MIN</div>
+    </div>
+    <div class="cal-days" id="cal-days"></div>
+  </div>
+  <div class="cal-legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#ff7eb3"></div>Push</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#5bc8ff"></div>Pull</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div>Legs</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#a78bfa"></div>Cardio</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#5cde5c"></div>Done</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#333"></div>Rest</div>
+  </div>
+  <div class="day-info" id="day-info">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:4px">TAP TANGGAL UNTUK DETAIL</div>
+    <div style="font-size:13px;font-weight:500">Pilih tanggal di kalender ☝️</div>
+  </div>
+</div>
 
-  <!-- WORKOUT -->
-  <div class="pane" id="pane-workout">
-    <div class="section-title">4-DAY SPLIT</div>
-    <div class="day-tabs">
-      <button class="day-btn active" onclick="switchDay('push',this)">PUSH</button>
-      <button class="day-btn" onclick="switchDay('pull',this)">PULL</button>
-      <button class="day-btn" onclick="switchDay('legs',this)">LEGS</button>
-      <button class="day-btn" onclick="switchDay('cardio',this)">CARDIO+ABS</button>
-    </div>
-    <div class="day-card active" id="day-push">
-      <div class="day-header"><div><div class="day-name">PUSH DAY</div><div style="font-size:10px;color:var(--muted);">Chest · Shoulders · Triceps</div></div><div class="day-focus">SENIN</div></div>
-      <div class="exercise-list">
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">1</div><div class="ex-info"><div class="ex-name">Bench Press</div><div class="ex-sets">4 sets × 8–10 reps · rest 90s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">2</div><div class="ex-info"><div class="ex-name">Incline Dumbbell Press</div><div class="ex-sets">3 sets × 10–12 reps · rest 60s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">3</div><div class="ex-info"><div class="ex-name">Overhead Press</div><div class="ex-sets">3 sets × 10 reps · rest 90s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">4</div><div class="ex-info"><div class="ex-name">Lateral Raise</div><div class="ex-sets">3 sets × 15 reps · rest 45s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">5</div><div class="ex-info"><div class="ex-name">Cable Flye</div><div class="ex-sets">3 sets × 12–15 reps · rest 45s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">6</div><div class="ex-info"><div class="ex-name">Tricep Pushdown</div><div class="ex-sets">3 sets × 12 reps · rest 45s</div></div><div class="ex-check"></div></div>
-      </div>
-      <div class="rest-badge">⏱ Estimasi total: 50–60 menit</div>
-    </div>
-    <div class="day-card" id="day-pull">
-      <div class="day-header"><div><div class="day-name">PULL DAY</div><div style="font-size:10px;color:var(--muted);">Back · Biceps · Rear Delt</div></div><div class="day-focus">RABU</div></div>
-      <div class="exercise-list">
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">1</div><div class="ex-info"><div class="ex-name">Pull Up / Lat Pulldown</div><div class="ex-sets">4 sets × 8–10 reps · rest 90s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">2</div><div class="ex-info"><div class="ex-name">Barbell Row</div><div class="ex-sets">4 sets × 8–10 reps · rest 90s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">3</div><div class="ex-info"><div class="ex-name">Seated Cable Row</div><div class="ex-sets">3 sets × 12 reps · rest 60s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">4</div><div class="ex-info"><div class="ex-name">Face Pull</div><div class="ex-sets">3 sets × 15 reps · rest 45s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">5</div><div class="ex-info"><div class="ex-name">Barbell Curl</div><div class="ex-sets">3 sets × 10–12 reps · rest 45s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">6</div><div class="ex-info"><div class="ex-name">Hammer Curl</div><div class="ex-sets">3 sets × 12 reps · rest 45s</div></div><div class="ex-check"></div></div>
-      </div>
-      <div class="rest-badge">⏱ Estimasi total: 50–60 menit</div>
-    </div>
-    <div class="day-card" id="day-legs">
-      <div class="day-header"><div><div class="day-name">LEG DAY</div><div style="font-size:10px;color:var(--muted);">Quads · Hamstring · Glutes · Calves</div></div><div class="day-focus">JUM'AT</div></div>
-      <div class="exercise-list">
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">1</div><div class="ex-info"><div class="ex-name">Squat</div><div class="ex-sets">4 sets × 8 reps · rest 2 menit</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">2</div><div class="ex-info"><div class="ex-name">Romanian Deadlift</div><div class="ex-sets">3 sets × 10 reps · rest 90s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">3</div><div class="ex-info"><div class="ex-name">Leg Press</div><div class="ex-sets">3 sets × 12 reps · rest 90s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">4</div><div class="ex-info"><div class="ex-name">Leg Curl</div><div class="ex-sets">3 sets × 12 reps · rest 60s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">5</div><div class="ex-info"><div class="ex-name">Walking Lunge</div><div class="ex-sets">3 sets × 20 langkah · rest 60s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">6</div><div class="ex-info"><div class="ex-name">Calf Raise</div><div class="ex-sets">4 sets × 20 reps · rest 30s</div></div><div class="ex-check"></div></div>
-      </div>
-      <div class="rest-badge">⏱ Estimasi total: 55–65 menit</div>
-    </div>
-    <div class="day-card" id="day-cardio">
-      <div class="day-header"><div><div class="day-name">CARDIO + ABS</div><div style="font-size:10px;color:var(--muted);">Fat Burn · Core Strength</div></div><div class="day-focus">SABTU</div></div>
-      <div class="exercise-list">
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">1</div><div class="ex-info"><div class="ex-name">Incline Treadmill Walk</div><div class="ex-sets">20–30 menit · incline 8–12 · speed 5–6</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">2</div><div class="ex-info"><div class="ex-name">Plank</div><div class="ex-sets">3 sets × 45–60 detik · rest 30s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">3</div><div class="ex-info"><div class="ex-name">Cable Crunch</div><div class="ex-sets">3 sets × 15 reps · rest 45s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">4</div><div class="ex-info"><div class="ex-name">Hanging Knee Raise</div><div class="ex-sets">3 sets × 12 reps · rest 45s</div></div><div class="ex-check"></div></div>
-        <div class="ex-row" onclick="toggleEx(this)"><div class="ex-num">5</div><div class="ex-info"><div class="ex-name">Russian Twist</div><div class="ex-sets">3 sets × 20 reps · rest 30s</div></div><div class="ex-check"></div></div>
-      </div>
-      <div class="rest-badge">⏱ Estimasi total: 45–55 menit</div>
-    </div>
+<div class="pane" id="pane-wo">
+  <div class="sec">4-DAY SPLIT</div>
+  <div class="day-tabs">
+    <button class="dbtn active" onclick="goDay('push',this)">PUSH</button>
+    <button class="dbtn" onclick="goDay('pull',this)">PULL</button>
+    <button class="dbtn" onclick="goDay('legs',this)">LEGS</button>
+    <button class="dbtn" onclick="goDay('cardio',this)">CARDIO+ABS</button>
   </div>
+  <div class="dc active" id="dc-push">
+    <div class="dh"><div><div class="dn2">PUSH DAY</div><div style="font-size:10px;color:var(--muted)">Chest / Shoulders / Triceps</div></div><div class="df">SENIN</div></div>
+    <div class="ex-list">
+      <div class="ex" onclick="ckEx(this)"><div class="en">1</div><div class="ei"><div class="ename">Bench Press</div><div class="esets">4 sets x 8-10 reps · rest 90s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">2</div><div class="ei"><div class="ename">Incline Dumbbell Press</div><div class="esets">3 sets x 10-12 reps · rest 60s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">3</div><div class="ei"><div class="ename">Overhead Press</div><div class="esets">3 sets x 10 reps · rest 90s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">4</div><div class="ei"><div class="ename">Lateral Raise</div><div class="esets">3 sets x 15 reps · rest 45s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">5</div><div class="ei"><div class="ename">Cable Flye</div><div class="esets">3 sets x 12-15 reps · rest 45s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">6</div><div class="ei"><div class="ename">Tricep Pushdown</div><div class="esets">3 sets x 12 reps · rest 45s</div></div><div class="eck"></div></div>
+    </div>
+    <div class="rest-badge">Estimasi total: 50-60 menit</div>
+  </div>
+  <div class="dc" id="dc-pull">
+    <div class="dh"><div><div class="dn2">PULL DAY</div><div style="font-size:10px;color:var(--muted)">Back / Biceps / Rear Delt</div></div><div class="df">RABU</div></div>
+    <div class="ex-list">
+      <div class="ex" onclick="ckEx(this)"><div class="en">1</div><div class="ei"><div class="ename">Pull Up / Lat Pulldown</div><div class="esets">4 sets x 8-10 reps · rest 90s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">2</div><div class="ei"><div class="ename">Barbell Row</div><div class="esets">4 sets x 8-10 reps · rest 90s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">3</div><div class="ei"><div class="ename">Seated Cable Row</div><div class="esets">3 sets x 12 reps · rest 60s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">4</div><div class="ei"><div class="ename">Face Pull</div><div class="esets">3 sets x 15 reps · rest 45s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">5</div><div class="ei"><div class="ename">Barbell Curl</div><div class="esets">3 sets x 10-12 reps · rest 45s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">6</div><div class="ei"><div class="ename">Hammer Curl</div><div class="esets">3 sets x 12 reps · rest 45s</div></div><div class="eck"></div></div>
+    </div>
+    <div class="rest-badge">Estimasi total: 50-60 menit</div>
+  </div>
+  <div class="dc" id="dc-legs">
+    <div class="dh"><div><div class="dn2">LEG DAY</div><div style="font-size:10px;color:var(--muted)">Quads / Hamstring / Glutes / Calves</div></div><div class="df">JUMAT</div></div>
+    <div class="ex-list">
+      <div class="ex" onclick="ckEx(this)"><div class="en">1</div><div class="ei"><div class="ename">Squat</div><div class="esets">4 sets x 8 reps · rest 2 menit</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">2</div><div class="ei"><div class="ename">Romanian Deadlift</div><div class="esets">3 sets x 10 reps · rest 90s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">3</div><div class="ei"><div class="ename">Leg Press</div><div class="esets">3 sets x 12 reps · rest 90s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">4</div><div class="ei"><div class="ename">Leg Curl</div><div class="esets">3 sets x 12 reps · rest 60s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">5</div><div class="ei"><div class="ename">Walking Lunge</div><div class="esets">3 sets x 20 langkah · rest 60s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">6</div><div class="ei"><div class="ename">Calf Raise</div><div class="esets">4 sets x 20 reps · rest 30s</div></div><div class="eck"></div></div>
+    </div>
+    <div class="rest-badge">Estimasi total: 55-65 menit</div>
+  </div>
+  <div class="dc" id="dc-cardio">
+    <div class="dh"><div><div class="dn2">CARDIO + ABS</div><div style="font-size:10px;color:var(--muted)">Fat Burn / Core Strength</div></div><div class="df">SABTU</div></div>
+    <div class="ex-list">
+      <div class="ex" onclick="ckEx(this)"><div class="en">1</div><div class="ei"><div class="ename">Incline Treadmill Walk</div><div class="esets">20-30 menit · incline 8-12 · speed 5-6</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">2</div><div class="ei"><div class="ename">Plank</div><div class="esets">3 sets x 45-60 detik · rest 30s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">3</div><div class="ei"><div class="ename">Cable Crunch</div><div class="esets">3 sets x 15 reps · rest 45s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">4</div><div class="ei"><div class="ename">Hanging Knee Raise</div><div class="esets">3 sets x 12 reps · rest 45s</div></div><div class="eck"></div></div>
+      <div class="ex" onclick="ckEx(this)"><div class="en">5</div><div class="ei"><div class="ename">Russian Twist</div><div class="esets">3 sets x 20 reps · rest 30s</div></div><div class="eck"></div></div>
+    </div>
+    <div class="rest-badge">Estimasi total: 45-55 menit</div>
+  </div>
+</div>
 
-  <!-- MEAL -->
-  <div class="pane" id="pane-meal">
-    <div class="section-title">MEAL PLAN</div>
-    <div class="calorie-ring-wrap">
-      <svg width="64" height="64" viewBox="0 0 64 64" style="flex-shrink:0;">
-        <circle cx="32" cy="32" r="26" fill="none" stroke="#1e1e1e" stroke-width="6"/>
-        <circle cx="32" cy="32" r="26" fill="none" stroke="#d4f000" stroke-width="6" stroke-dasharray="163.4" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 32 32)"/>
-        <text x="32" y="36" text-anchor="middle" font-family="Bebas Neue" font-size="13" fill="#d4f000">100%</text>
-      </svg>
-      <div class="ring-info">
-        <div class="ring-total">1.850 <span style="font-size:12px;font-family:'DM Sans'">kal/hari</span></div>
-        <div class="ring-label">Deficit ~550 kal dari TDEE kamu</div>
-        <div class="macro-row">
-          <div class="macro-item"><div class="macro-val macro-p">165g</div><div class="macro-name">Protein</div></div>
-          <div class="macro-item"><div class="macro-val macro-c">185g</div><div class="macro-name">Carbs</div></div>
-          <div class="macro-item"><div class="macro-val macro-f">55g</div><div class="macro-name">Fat</div></div>
-        </div>
+<div class="pane" id="pane-meal">
+  <div class="sec">MEAL PLAN</div>
+  <div class="cal-ring-wrap">
+    <svg width="60" height="60" viewBox="0 0 60 60" style="flex-shrink:0">
+      <circle cx="30" cy="30" r="24" fill="none" stroke="#1e1e1e" stroke-width="6"/>
+      <circle cx="30" cy="30" r="24" fill="none" stroke="#d4f000" stroke-width="6" stroke-dasharray="150.8" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+      <text x="30" y="34" text-anchor="middle" font-family="Bebas Neue" font-size="12" fill="#d4f000">100%</text>
+    </svg>
+    <div class="ring-info">
+      <div class="ring-tot">1.850 <span style="font-size:11px;font-family:'DM Sans'">kal/hari</span></div>
+      <div class="ring-lbl">Deficit ~550 kal dari TDEE</div>
+      <div class="macro-row">
+        <div class="macro-i"><div class="mv mp">165g</div><div class="mn">Protein</div></div>
+        <div class="macro-i"><div class="mv mc">185g</div><div class="mn">Carbs</div></div>
+        <div class="macro-i"><div class="mv mf">55g</div><div class="mn">Fat</div></div>
       </div>
     </div>
-    <div class="meal-list">
-      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">06.30</div><div class="meal-name">Sarapan</div></div><div class="meal-kcal">450 kal ›</div></div><div class="meal-body"><div class="food-item">Nasi merah <span>150g · 175 kal</span></div><div class="food-item">Telur rebus <span>3 butir · 210 kal</span></div><div class="food-item">Tempe goreng <span>50g · 45 kal</span></div><div class="food-item">Sayur bening <span>1 mangkok · 20 kal</span></div></div></div>
-      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">10.00</div><div class="meal-name">Snack Pagi</div></div><div class="meal-kcal">200 kal ›</div></div><div class="meal-body"><div class="food-item">Greek yogurt / susu protein <span>1 cup · 120 kal</span></div><div class="food-item">Pisang <span>1 buah · 80 kal</span></div></div></div>
-      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">13.00</div><div class="meal-name">Makan Siang</div></div><div class="meal-kcal">550 kal ›</div></div><div class="meal-body"><div class="food-item">Nasi putih/merah <span>150g · 195 kal</span></div><div class="food-item">Ayam dada panggang <span>150g · 250 kal</span></div><div class="food-item">Sayur tumis / lalapan <span>1 porsi · 40 kal</span></div><div class="food-item">Tahu goreng <span>100g · 65 kal</span></div></div></div>
-      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">16.00</div><div class="meal-name">Pre-Workout</div></div><div class="meal-kcal">250 kal ›</div></div><div class="meal-body"><div class="food-item">Roti gandum <span>2 lembar · 130 kal</span></div><div class="food-item">Telur ceplok / rebus <span>2 butir · 120 kal</span></div></div></div>
-      <div class="meal-card"><div class="meal-header" onclick="toggleMeal(this)"><div><div class="meal-time">19.30</div><div class="meal-name">Post-Workout / Makan Malam</div></div><div class="meal-kcal">400 kal ›</div></div><div class="meal-body"><div class="food-item">Nasi merah / ubi <span>100g · 130 kal</span></div><div class="food-item">Ikan / daging sapi <span>150g · 200 kal</span></div><div class="food-item">Brokoli / kangkung <span>1 porsi · 30 kal</span></div><div class="food-item">Tahu/tempe <span>50g · 40 kal</span></div></div></div>
+  </div>
+  <div class="meals">
+    <div class="mc2"><div class="mh" onclick="togMeal(this)"><div><div class="mt2">06.30</div><div class="mn2">Sarapan</div></div><div class="mk">450 kal</div></div><div class="mb"><div class="fi">Nasi merah<span>150g · 175 kal</span></div><div class="fi">Telur rebus<span>3 butir · 210 kal</span></div><div class="fi">Tempe goreng<span>50g · 45 kal</span></div><div class="fi">Sayur bening<span>1 mangkok · 20 kal</span></div></div></div>
+    <div class="mc2"><div class="mh" onclick="togMeal(this)"><div><div class="mt2">10.00</div><div class="mn2">Snack Pagi</div></div><div class="mk">200 kal</div></div><div class="mb"><div class="fi">Greek yogurt / susu protein<span>1 cup · 120 kal</span></div><div class="fi">Pisang<span>1 buah · 80 kal</span></div></div></div>
+    <div class="mc2"><div class="mh" onclick="togMeal(this)"><div><div class="mt2">13.00</div><div class="mn2">Makan Siang</div></div><div class="mk">550 kal</div></div><div class="mb"><div class="fi">Nasi putih/merah<span>150g · 195 kal</span></div><div class="fi">Ayam dada panggang<span>150g · 250 kal</span></div><div class="fi">Sayur tumis / lalapan<span>1 porsi · 40 kal</span></div><div class="fi">Tahu goreng<span>100g · 65 kal</span></div></div></div>
+    <div class="mc2"><div class="mh" onclick="togMeal(this)"><div><div class="mt2">16.00</div><div class="mn2">Pre-Workout</div></div><div class="mk">250 kal</div></div><div class="mb"><div class="fi">Roti gandum<span>2 lembar · 130 kal</span></div><div class="fi">Telur ceplok / rebus<span>2 butir · 120 kal</span></div></div></div>
+    <div class="mc2"><div class="mh" onclick="togMeal(this)"><div><div class="mt2">19.30</div><div class="mn2">Post-Workout / Makan Malam</div></div><div class="mk">400 kal</div></div><div class="mb"><div class="fi">Nasi merah / ubi<span>100g · 130 kal</span></div><div class="fi">Ikan / daging sapi<span>150g · 200 kal</span></div><div class="fi">Brokoli / kangkung<span>1 porsi · 30 kal</span></div><div class="fi">Tahu/tempe<span>50g · 40 kal</span></div></div></div>
+  </div>
+</div>
+
+<div class="pane" id="pane-prog">
+  <div class="sec">WEIGHT LOG</div>
+  <div class="wi-wrap">
+    <div class="wi-label">Catat berat hari ini (kg)</div>
+    <div class="wi-row">
+      <input class="wi" type="number" id="wi" placeholder="e.g. 91.5" step="0.1" min="40" max="200">
+      <button class="wb" onclick="doLog()">CATAT</button>
     </div>
   </div>
+  <div class="tl" id="tl"></div>
+</div>
 
-  <!-- PROGRESS -->
-  <div class="pane" id="pane-progress">
-    <div class="section-title">WEIGHT LOG</div>
-    <div id="save-status" style="font-size:11px;min-height:18px;margin-bottom:6px;transition:color .3s;"></div>
-    <div class="weight-input-wrap">
-      <div class="weight-label">Catat berat hari ini (kg)</div>
-      <div class="weight-row">
-        <input class="weight-input" type="number" id="weight-in" placeholder="e.g. 91.5" step="0.1" min="40" max="200"/>
-        <button class="weight-btn" onclick="logWeight()">CATAT</button>
-      </div>
-    </div>
-    <div class="timeline" id="timeline"></div>
-  </div>
-
-  <!-- TIPS -->
-  <div class="pane" id="pane-tips">
-    <div class="section-title">PRO TIPS</div>
-    <div class="tip-box"><strong>🥩 Protein adalah prioritas utama.</strong> Target 165g protein/hari. Kalori boleh sedikit lebih, tapi protein tidak boleh kurang — ini yang jaga muscle mass kamu saat cutting.</div>
-    <div class="tip-box"><strong>💧 Minum 3–4 liter air per hari.</strong> Bantu metabolisme, ngurangin retensi air, dan bikin kamu lebih kenyang.</div>
-    <div class="tip-box"><strong>😴 Tidur 7–8 jam itu latihan juga.</strong> Growth hormone paling banyak diproduksi saat tidur. Kurang tidur = cortisol naik = fat burn melambat + muscle loss.</div>
-    <div class="tip-box"><strong>📏 Jangan cuma lihat timbangan.</strong> Track juga ukuran lingkar perut tiap 2 minggu. Timbangan bisa stagnan tapi badan makin defined.</div>
-    <div class="tip-box"><strong>🏃 Incline walk > lari untuk fat loss.</strong> Incline treadmill walk 30 menit bakar kalori hampir sama dengan jogging tapi tanpa impact ke lutut.</div>
-    <div class="tip-box"><strong>📅 Progressive overload tiap minggu.</strong> Tambah berat atau reps sedikit tiap minggu. Tanpa progressi = tanpa adaptasi = tanpa hasil.</div>
-    <div class="tip-box"><strong>🍚 Cheat meal boleh, cheat day tidak.</strong> 1 cheat meal/minggu oke untuk mental health. Tapi full cheat day bisa hapus deficit 5–6 hari sekaligus.</div>
-    <div class="tip-box"><strong>⏱ Target realistis: 0.5–0.7kg/minggu.</strong> 17kg dalam 5–6 bulan sangat achievable. Konsistensi > intensitas.</div>
-  </div>
+<div class="pane" id="pane-tips">
+  <div class="sec">PRO TIPS</div>
+  <div class="tip"><strong>Protein adalah prioritas utama.</strong> Target 165g/hari. Ini yang jaga muscle mass kamu saat cutting. Kalori boleh sedikit meleset, protein tidak.</div>
+  <div class="tip"><strong>Minum 3-4 liter air per hari.</strong> Bantu metabolisme, ngurangin retensi air, dan bikin lebih kenyang.</div>
+  <div class="tip"><strong>Tidur 7-8 jam itu latihan juga.</strong> Growth hormone diproduksi saat tidur. Kurang tidur = cortisol naik = fat burn melambat.</div>
+  <div class="tip"><strong>Jangan cuma lihat timbangan.</strong> Track juga lingkar perut tiap 2 minggu. Timbangan bisa stagnan tapi badan makin defined.</div>
+  <div class="tip"><strong>Incline walk lebih baik dari lari untuk fat loss.</strong> Bakar kalori hampir sama dengan jogging tapi tanpa impact ke lutut.</div>
+  <div class="tip"><strong>Progressive overload tiap minggu.</strong> Tambah berat atau reps sedikit tiap minggu. Tanpa progressi = tanpa hasil.</div>
+  <div class="tip"><strong>Cheat meal boleh, cheat day tidak.</strong> 1 cheat meal/minggu oke. Full cheat day bisa hapus deficit 5-6 hari sekaligus.</div>
+  <div class="tip"><strong>Target realistis: 0.5-0.7kg/minggu.</strong> 17kg dalam 5-6 bulan sangat achievable. Konsistensi lebih penting dari intensitas.</div>
+</div>
 
 </div>
 </div>
 
-// ============ STATE (persisted via Google Sheets) ============
-const API_URL = 'https://script.google.com/macros/s/AKfycbwujQrJioGZVx16gigYEYEfx32ld-OYcxL5rFFE3AJgp1r4MI6eFwuqOXchPkzGGDeK2Q/exec';
-let weightLogs = [{date:'Start', weight:92.0, diff:null}];
-let loggedDays = {};
-
-function setStatus(msg, color) {
-  const el = document.getElementById('save-status');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.color = color || 'var(--muted)';
+<script>
+// ---- STATE via localStorage ----
+const KEY = 'alvin_gym_v1';
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) { return {}; }
+}
+function save(state) {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
 }
 
-async function loadState() {
-  setStatus('⏳ Memuat data...', 'var(--accent)');
-  try {
-    const res  = await fetch(API_URL + '?action=getAll');
-    const data = await res.json();
-    if (data.weightLogs && data.weightLogs.length > 0) {
-      weightLogs = data.weightLogs.map(l => ({
-        date: l.date,
-        weight: parseFloat(l.weight),
-        diff: (l.diff === '' || l.diff === null) ? null : parseFloat(l.diff)
-      }));
-    }
-    if (data.loggedDays) loggedDays = data.loggedDays;
-    setStatus('✓ Data loaded', '#5cde5c');
-    setTimeout(() => setStatus(''), 2000);
-  } catch(e) {
-    setStatus('⚠ Gagal load — cek koneksi', '#de5c5c');
-    console.error('Load failed:', e);
-  }
-  renderLogs();
-  updateProgressBar();
-  initCal();
+let state = load();
+let wLogs = state.wLogs || [{date:'Start', weight:92.0, diff:null}];
+let logged = state.logged || {};
+
+function persist() {
+  save({wLogs, logged});
 }
 
-async function saveWeight(entry) {
-  setStatus('💾 Menyimpan...', 'var(--accent)');
-  try {
-    await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'saveWeight', ...entry })
-    });
-    setStatus('✓ Tersimpan ke Google Sheets!', '#5cde5c');
-    setTimeout(() => setStatus(''), 2500);
-  } catch(e) {
-    setStatus('⚠ Gagal simpan', '#de5c5c');
-    console.error('saveWeight failed:', e);
-  }
-}
-
-async function saveLoggedDay(dateKey) {
-  try {
-    await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'saveLoggedDay', dateKey })
-    });
-  } catch(e) { console.error('saveLoggedDay failed:', e); }
-}
-
-
-// ============ TABS ============
-function switchTab(t) {
-  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+// ---- TABS ----
+const TABS = ['cal','wo','meal','prog','tips'];
+function goTab(t) {
+  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', TABS[i]===t));
   document.querySelectorAll('.pane').forEach(el => el.classList.remove('active'));
-  const tabs = ['calendar','workout','meal','progress','tips'];
-  document.querySelectorAll('.tab')[tabs.indexOf(t)].classList.add('active');
-  document.getElementById('pane-' + t).classList.add('active');
+  document.getElementById('pane-'+t).classList.add('active');
 }
-function switchDay(d, btn) {
-  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.day-card').forEach(c => c.classList.remove('active'));
+function goDay(d, btn) {
+  document.querySelectorAll('.dbtn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.dc').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('day-' + d).classList.add('active');
+  document.getElementById('dc-'+d).classList.add('active');
 }
-function toggleEx(el) { el.querySelector('.ex-check').classList.toggle('done'); }
-function toggleMeal(el) { el.nextElementSibling.classList.toggle('open'); }
+function ckEx(el) { el.querySelector('.eck').classList.toggle('done'); }
+function togMeal(el) { el.nextElementSibling.classList.toggle('open'); }
 
-// ============ CALENDAR ============
-const gymDayType  = {1:'push', 3:'pull', 5:'legs', 6:'cardio'};
-const gymLabels   = {push:'💪 Push Day', pull:'🔵 Pull Day', legs:'🟡 Leg Day', cardio:'🟣 Cardio+Abs'};
-const gymColors   = {push:'#ff7eb3', pull:'#5bc8ff', legs:'#d4f000', cardio:'#a78bfa'};
-const monthNames  = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const dayNames    = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-let calYear, calMonth;
+// ---- CALENDAR ----
+const GYM = {1:'push',3:'pull',5:'legs',6:'cardio'};
+const GLABELS = {push:'Push Day',pull:'Pull Day',legs:'Leg Day',cardio:'Cardio+Abs'};
+const GCOLORS = {push:'#ff7eb3',pull:'#5bc8ff',legs:'#d4f000',cardio:'#a78bfa'};
+const MOS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const DAYS = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+let CY, CM;
 
-function initCal() {
-  const now = new Date();
-  calYear  = now.getFullYear();
-  calMonth = now.getMonth();
-  renderCal();
-}
-function changeMonth(dir) {
-  calMonth += dir;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  if (calMonth < 0)  { calMonth = 11; calYear--; }
-  renderCal();
-}
+function initCal() { const n=new Date(); CY=n.getFullYear(); CM=n.getMonth(); renderCal(); }
+function chMo(d) { CM+=d; if(CM>11){CM=0;CY++;} if(CM<0){CM=11;CY--;} renderCal(); }
+
 function renderCal() {
-  document.getElementById('cal-month-label').textContent = monthNames[calMonth] + ' ' + calYear;
-  const firstDay = new Date(calYear, calMonth, 1);
-  const lastDay  = new Date(calYear, calMonth + 1, 0);
-  const today    = new Date();
-  let startDow = firstDay.getDay();
-  startDow = (startDow === 0) ? 6 : startDow - 1;
-  const container = document.getElementById('cal-days');
-  container.innerHTML = '';
-  for (let i = 0; i < startDow; i++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day empty';
-    el.innerHTML = '<div class="day-num">&nbsp;</div>';
-    container.appendChild(el);
+  document.getElementById('mo-label').textContent = MOS[CM]+' '+CY;
+  const first=new Date(CY,CM,1), last=new Date(CY,CM+1,0), today=new Date();
+  let sd=first.getDay(); sd=sd===0?6:sd-1;
+  const con=document.getElementById('cal-days');
+  con.innerHTML='';
+  for(let i=0;i<sd;i++){const e=document.createElement('div');e.className='cal-day empty';e.innerHTML='<div class="dn">&nbsp;</div>';con.appendChild(e);}
+  for(let d=1;d<=last.getDate();d++){
+    const dt=new Date(CY,CM,d), dow=dt.getDay(), key=CY+'-'+CM+'-'+d, gt=GYM[dow];
+    const el=document.createElement('div');
+    el.className='cal-day'+(dt.toDateString()===today.toDateString()?' today':'');
+    let dc='#333';
+    if(logged[key]) dc='#5cde5c';
+    else if(gt) dc=GCOLORS[gt];
+    el.innerHTML='<div class="dn">'+d+'</div><div class="cdot" style="background:'+dc+'"></div>';
+    el.onclick=()=>selDay(d,dow,gt,key);
+    con.appendChild(el);
   }
-  for (let d = 1; d <= lastDay.getDate(); d++) {
-    const date    = new Date(calYear, calMonth, d);
-    const dow     = date.getDay();
-    const isToday = date.toDateString() === today.toDateString();
-    const dateKey = calYear + '-' + calMonth + '-' + d;
-    const gymType = gymDayType[dow];
-    const el      = document.createElement('div');
-    el.className  = 'cal-day' + (isToday ? ' today' : '');
-    let dotColor  = '#333';
-    if (loggedDays[dateKey])  dotColor = '#5cde5c';
-    else if (gymType)         dotColor = gymColors[gymType];
-    el.innerHTML  = '<div class="day-num">' + d + '</div><div class="cal-dot" style="background:' + dotColor + ';"></div>';
-    el.onclick    = () => selectDay(d, dow, gymType, dateKey);
-    container.appendChild(el);
-  }
-}
-function selectDay(d, dow, gymType, dateKey) {
-  const info = document.getElementById('selected-day-info');
-  let html = '<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">' + dayNames[dow] + ', ' + d + ' ' + monthNames[calMonth] + ' ' + calYear + '</div>';
-  if (gymType) {
-    html += '<div style="font-size:14px;font-weight:600;color:' + gymColors[gymType] + ';margin-bottom:8px;">' + gymLabels[gymType] + '</div>';
-    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;">';
-    html += '<button onclick="switchTab(\'workout\');setTimeout(()=>{document.querySelector(\'.day-btn[onclick*=\\\'' + gymType + '\\\']\').click();},50);" style="background:' + gymColors[gymType] + ';color:var(--black);border:none;border-radius:8px;padding:7px 14px;font-weight:700;font-size:12px;cursor:pointer;">Lihat Workout →</button>';
-    if (!loggedDays[dateKey]) {
-      html += '<button onclick="markDone(\'' + dateKey + '\',' + d + ',' + dow + ')" style="background:var(--gray2);color:var(--white);border:1px solid var(--gray3);border-radius:8px;padding:7px 14px;font-weight:600;font-size:12px;cursor:pointer;">✓ Tandai Selesai</button>';
-    } else {
-      html += '<div style="font-size:12px;color:#5cde5c;padding:7px 0;">✓ Workout sudah dicatat!</div>';
-    }
-    html += '</div>';
-  } else {
-    html += '<div style="font-size:14px;font-weight:600;color:var(--muted);">Rest Day 😴</div>';
-    html += '<div style="font-size:11px;color:var(--muted);margin-top:4px;">Istirahat adalah bagian dari program. Recovery = growth.</div>';
-  }
-  info.innerHTML = html;
-}
-function markDone(dateKey, d, dow) {
-  loggedDays[dateKey] = true;
-  saveLoggedDay(dateKey);
-  renderCal();
-  selectDay(d, dow, gymDayType[dow], dateKey);
 }
 
-// ============ WEIGHT LOG ============
-function updateProgressBar() {
-  const latest = weightLogs[weightLogs.length - 1].weight;
-  const lost   = Math.max(0, 92 - latest);
-  const pct    = Math.min(100, Math.round((lost / 17) * 100));
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('pct-label').textContent = pct + '%';
-  const disp = document.getElementById('current-weight-display');
-  if (disp) disp.innerHTML = latest.toFixed(1) + '<span class="stat-unit">kg</span>';
+function selDay(d,dow,gt,key) {
+  const info=document.getElementById('day-info');
+  let h='<div style="font-size:10px;color:var(--muted);margin-bottom:4px">'+DAYS[dow]+', '+d+' '+MOS[CM]+' '+CY+'</div>';
+  if(gt){
+    h+='<div style="font-size:14px;font-weight:600;color:'+GCOLORS[gt]+';margin-bottom:8px">'+GLABELS[gt]+'</div>';
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    h+='<button onclick="goTab(\'wo\');setTimeout(()=>goDay(\''+gt+'\',document.querySelector(\'.dbtn[onclick*=&quot;'+gt+'&quot;]\')),80)" style="background:'+GCOLORS[gt]+';color:#0a0a0a;border:none;border-radius:8px;padding:7px 14px;font-weight:700;font-size:12px;cursor:pointer">Lihat Workout</button>';
+    if(!logged[key]) h+='<button onclick="markDone(\''+key+'\','+d+','+dow+')" style="background:#2a2a2a;color:#f5f3ee;border:1px solid #3a3a3a;border-radius:8px;padding:7px 14px;font-weight:600;font-size:12px;cursor:pointer">Tandai Selesai</button>';
+    else h+='<div style="font-size:12px;color:#5cde5c;padding:7px 0">Workout sudah dicatat!</div>';
+    h+='</div>';
+  } else {
+    h+='<div style="font-size:14px;font-weight:600;color:var(--muted)">Rest Day</div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin-top:4px">Istirahat adalah bagian dari program. Recovery = growth.</div>';
+  }
+  info.innerHTML=h;
 }
-function logWeight() {
-  const val = parseFloat(document.getElementById('weight-in').value);
-  if (isNaN(val) || val < 40 || val > 200) { alert('Masukkan berat yang valid ya! (40–200 kg)'); return; }
-  const prev = weightLogs[weightLogs.length - 1].weight;
-  const diff = +(val - prev).toFixed(1);
-  const today = new Date().toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
-  weightLogs.push({date: today, weight: val, diff});
-  saveWeight({date: today, weight: val, diff});
+
+function markDone(key,d,dow) {
+  logged[key]=true;
+  persist();
+  renderCal();
+  selDay(d,dow,GYM[dow],key);
+}
+
+// ---- WEIGHT LOG ----
+function updateBar() {
+  const latest=wLogs[wLogs.length-1].weight;
+  const pct=Math.min(100,Math.round((Math.max(0,92-latest)/17)*100));
+  document.getElementById('pfill').style.width=pct+'%';
+  document.getElementById('pct').textContent=pct+'%';
+  const el=document.getElementById('cur-w');
+  if(el) el.innerHTML=latest.toFixed(1)+'<span class="stat-unit">kg</span>';
+}
+
+function doLog() {
+  const val=parseFloat(document.getElementById('wi').value);
+  if(isNaN(val)||val<40||val>200){alert('Masukkan berat yang valid (40-200 kg)');return;}
+  const prev=wLogs[wLogs.length-1].weight;
+  const diff=+(val-prev).toFixed(1);
+  const today=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+  wLogs.push({date:today,weight:val,diff});
+  persist();
   renderLogs();
-  updateProgressBar();
-  document.getElementById('weight-in').value = '';
+  updateBar();
+  document.getElementById('wi').value='';
 }
+
 function renderLogs() {
-  const tl = document.getElementById('timeline');
-  tl.innerHTML = '';
-  [...weightLogs].reverse().forEach(l => {
-    const diffHtml = l.diff === null
-      ? '<div class="tl-diff" style="background:#1a1a1a;color:var(--muted);">START</div>'
-      : l.diff <= 0
-        ? '<div class="tl-diff tl-down">' + l.diff + ' kg</div>'
-        : '<div class="tl-diff tl-up">+' + l.diff + ' kg</div>';
-    tl.innerHTML += '<div class="timeline-row"><div class="tl-date">' + l.date + '</div><div class="tl-weight">' + l.weight.toFixed(1) + ' kg</div>' + diffHtml + '</div>';
+  const tl=document.getElementById('tl');
+  tl.innerHTML='';
+  [...wLogs].reverse().forEach(l=>{
+    const dh=l.diff===null
+      ?'<div class="tl-diff neutral">START</div>'
+      :l.diff<=0
+        ?'<div class="tl-diff down">'+l.diff+' kg</div>'
+        :'<div class="tl-diff up">+'+l.diff+' kg</div>';
+    tl.innerHTML+='<div class="tl-row"><div class="tl-d">'+l.date+'</div><div class="tl-w">'+l.weight.toFixed(1)+' kg</div>'+dh+'</div>';
   });
 }
 
-// ============ INIT ============
-loadState();
+// ---- INIT ----
+renderLogs();
+updateBar();
+initCal();
 </script>
 </body>
 </html>
